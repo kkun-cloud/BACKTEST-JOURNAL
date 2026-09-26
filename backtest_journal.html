@@ -354,6 +354,35 @@ canvas{width:100%!important;background:transparent;border-radius:var(--r-sm);}
 .lb-thumb{width:48px;height:36px;object-fit:cover;border-radius:var(--r-sm);border:2px solid transparent;cursor:pointer;opacity:0.6;transition:all 0.15s;}
 .lb-thumb.active{border-color:var(--neutral);opacity:1;}
 .lb-thumb:hover{opacity:1;}
+
+/* ---- 手法v2 ルール判定 ---- */
+.rule-card{background:var(--surface);border-radius:var(--r-lg);box-shadow:0 2px 10px rgba(0,0,0,0.25);border-left:3px solid var(--neutral);padding:14px 16px;margin-bottom:16px;}
+.rule-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px;}
+.rule-tag{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--neutral);}
+.rule-note{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);}
+.rule-step{border-top:1px solid var(--border);padding:11px 0;}
+.rs-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.rs-no{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--dim);border:1px solid var(--border);border-radius:var(--r-pill);padding:2px 8px;flex-shrink:0;}
+.rs-title{font-size:12px;color:var(--text);}
+.rs-verdict{margin-left:auto;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;padding:4px 11px;border-radius:var(--r-pill);border:1px solid var(--border);color:var(--dim);}
+.rs-verdict.ok{color:var(--win);border-color:rgba(0,217,126,0.45);background:var(--win-dim);}
+.rs-verdict.ng{color:var(--loss);border-color:rgba(255,61,90,0.45);background:var(--loss-dim);}
+.rs-inputs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px;}
+.rs-inputs.one{grid-template-columns:1fr;}
+.rs-checks{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:9px;}
+.rs-check{display:flex;align-items:center;gap:8px;background:var(--s1);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 12px;cursor:pointer;font-size:12px;color:var(--dim);transition:all 0.15s;}
+.rs-check input{width:15px;height:15px;accent-color:var(--win);cursor:pointer;flex-shrink:0;}
+.rs-check.on{border-color:var(--win);color:var(--win);background:var(--win-dim);}
+.rs-hint{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);margin-top:7px;line-height:1.6;}
+.rule-final{margin-top:12px;border-top:1px solid var(--border);padding-top:12px;}
+.rule-final-badge{font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:1px;padding:11px 14px;border-radius:var(--r-md);border:1px solid var(--border);color:var(--dim);text-align:center;line-height:1.7;}
+.rule-final-badge.ok{color:var(--win);border-color:rgba(0,217,126,0.45);background:var(--win-dim);}
+.rule-final-badge.ng{color:var(--loss);border-color:rgba(255,61,90,0.45);background:var(--loss-dim);}
+.rule-final-badge.na{color:var(--gold);border-color:rgba(240,180,0,0.4);background:rgba(240,180,0,0.08);}
+.rule-ref-body{margin-top:10px;border-top:1px solid var(--border);padding-top:10px;font-size:12px;color:var(--text);line-height:1.85;}
+.rule-ref-body b{color:var(--gold);font-weight:500;}
+.rule-ref-body .rr-step{margin-bottom:8px;}
+@media(max-width:560px){.rs-checks{grid-template-columns:1fr;}.rs-inputs{grid-template-columns:1fr;}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
@@ -405,6 +434,108 @@ canvas{width:100%!important;background:transparent;border-radius:var(--r-sm);}
       </div>
     </div>
 
+    <!-- ===== 検証対象ルール（参照） ===== -->
+    <div style="background:var(--surface);border-radius:var(--r-lg);box-shadow:0 2px 10px rgba(0,0,0,0.25);border-left:3px solid var(--neutral);padding:12px 16px;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;gap:10px;" onclick="toggleRuleRef()">
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--neutral);">検証対象ルール — MNQ スキャルピング手法 v2（流動性フィルター追加版）</div>
+        <span id="rule-ref-caret" style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);white-space:nowrap;">▼ 開く</span>
+      </div>
+      <div id="rule-ref-body" class="rule-ref-body" style="display:none;">
+        <div class="rr-step"><b>STEP 1 — 環境認識（4H）</b><br>トレンド方向を確認（高値・安値の切り下げ / 切り上げ）</div>
+        <div class="rr-step"><b>STEP 2 — 構造確認（15m）</b><br>4Hと同じ方向か？ → NO なら<b>ノートレード</b>。YES なら「保護されたライン」を特定する。<br>売り＝最安値の起点の高値／買い＝最高値の起点の安値。<br>覚え方：エントリー方向と逆側の極値の起点が保護される。</div>
+        <div class="rr-step"><b>STEP 3 — 流動性の特定（5m）</b><br>保護された高値・安値を除いた中から「安値を割った高値」または「高値を超えた安値」を探す。→ これが Sweep のターゲット。</div>
+        <div class="rr-step"><b>STEP 4 — エントリー（1m）</b><br>① 流動性ポイント付近で Sweep を待つ → ② BOS 確定（1mボディ基準）→ ③ 50EMA ボディクローズ確認 → ④ エントリー</div>
+        <div class="rr-step"><b>STEP 5 — 無効化</b><br>15m の保護された高値／安値を超えたら即撤退</div>
+        <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;">
+          <b>ルール</b><br>
+          ・トレンド方向のみエントリー（逆張り禁止）<br>
+          ・BOS はボディ基準（ヒゲではない）<br>
+          ・Sweep ＝ ヒゲが前回高値／安値を超えて即反転<br>
+          ・4Hと15mのトレンドが不一致 → ノートレード<br>
+          ・<b>流動性フィルター</b>：流動性ポイント〜保護ラインの距離 ＜ SL幅 → スキップ（トレンド終盤で余白がなく反転リスクが高いため）
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 手法v2 ルール判定 ===== -->
+    <div class="rule-card">
+      <div class="rule-head">
+        <div class="rule-tag">手法 v2 ルール判定 — STEP 1〜5</div>
+        <div class="rule-note">逸脱トレードも記録できます（準拠 vs 逸脱を比較検証するため）</div>
+      </div>
+
+      <div class="rule-step">
+        <div class="rs-head">
+          <span class="rs-no">STEP 1-2</span>
+          <span class="rs-title">環境認識 — 4H と 15m のトレンド一致</span>
+          <span class="rs-verdict" id="rv-align">—</span>
+        </div>
+        <div class="rs-inputs">
+          <div class="field"><label>4H トレンド</label><select id="f-trend4h" onchange="judgeRule()"><option value="">— 未選択</option><option value="上昇">上昇</option><option value="下降">下降</option><option value="レンジ">レンジ/不明</option></select></div>
+          <div class="field"><label>15m 構造</label><select id="f-struct15m" onchange="judgeRule()"><option value="">— 未選択</option><option value="上昇">上昇</option><option value="下降">下降</option><option value="レンジ">レンジ/不明</option></select></div>
+        </div>
+        <div class="rs-hint">不一致 / レンジ → ノートレード（見送りタブへ記録）</div>
+      </div>
+
+      <div class="rule-step">
+        <div class="rs-head">
+          <span class="rs-no">RULE</span>
+          <span class="rs-title">トレンド方向のみエントリー（逆張り禁止）</span>
+          <span class="rs-verdict" id="rv-dir">—</span>
+        </div>
+        <div class="rs-hint">下の「方向」と 4H トレンドを照合します</div>
+      </div>
+
+      <div class="rule-step">
+        <div class="rs-head">
+          <span class="rs-no">STEP 3</span>
+          <span class="rs-title">流動性フィルター — 余地 ≥ SL幅</span>
+          <span class="rs-verdict" id="rv-room">—</span>
+        </div>
+        <div class="rs-inputs">
+          <div class="field"><label>保護ライン価格（15m）</label><input type="number" step="0.25" id="f-protected" placeholder="例: 20150.25" oninput="judgeRule()"></div>
+          <div class="field"><label>流動性ポイント価格（5m）</label><input type="number" step="0.25" id="f-liquidity" placeholder="例: 20120.75" oninput="judgeRule()"></div>
+        </div>
+        <div class="rs-hint" id="rs-room-calc">余地 = |保護ライン − 流動性ポイント| — 下の「リスク pips (SL幅)」と比較します</div>
+      </div>
+
+      <div class="rule-step">
+        <div class="rs-head">
+          <span class="rs-no">STEP 4</span>
+          <span class="rs-title">執行順序（1m）— Sweep → BOS → 50EMAボディクローズ</span>
+          <span class="rs-verdict" id="rv-seq">—</span>
+        </div>
+        <div class="rs-checks">
+          <label class="rs-check" id="rsc-sweep"><input type="checkbox" id="f-step-sweep" onchange="judgeRule()">① Sweep</label>
+          <label class="rs-check" id="rsc-bos"><input type="checkbox" id="f-step-bos" onchange="judgeRule()">② BOS（ボディ）</label>
+          <label class="rs-check" id="rsc-ema"><input type="checkbox" id="f-step-ema" onchange="judgeRule()">③ 50EMAボディクローズ</label>
+        </div>
+        <div class="rs-hint" id="rs-seq-hint">下の Sweep 超過幅・戻り本数を入力すると、Sweep の成否は自動判定を優先します</div>
+      </div>
+
+      <div class="rule-step">
+        <div class="rs-head">
+          <span class="rs-no">STEP 5</span>
+          <span class="rs-title">決済・無効化</span>
+        </div>
+        <div class="rs-inputs one">
+          <div class="field"><label>決済理由</label><select id="f-exit" onchange="judgeRule()">
+            <option value="">— 未選択</option>
+            <option value="TP到達">TP到達</option>
+            <option value="SL到達">SL到達</option>
+            <option value="保護ライン超え（無効化）">保護ライン超え（無効化・即撤退）</option>
+            <option value="建値・微益撤退">建値・微益撤退</option>
+            <option value="時間切れ">時間切れ</option>
+            <option value="手動（ルール外）">手動（ルール外の裁量決済）</option>
+          </select></div>
+        </div>
+      </div>
+
+      <div class="rule-final">
+        <div class="rule-final-badge" id="rule-final-badge">— 未入力（4H・15m・保護ライン・流動性ポイント・SL幅・執行チェックを入力してください）</div>
+      </div>
+    </div>
+
     <div class="form-grid">
       <div class="field">
         <label>日時</label>
@@ -431,11 +562,11 @@ canvas{width:100%!important;background:transparent;border-radius:var(--r-sm);}
       </div>
       <div class="field">
         <label>リスク pips (SL幅)</label>
-        <input type="number" id="f-sl" placeholder="例: 10" oninput="calcRR()">
+        <input type="number" id="f-sl" placeholder="例: 10" oninput="calcRR();judgeRule()">
       </div>
       <div class="field">
         <label>方向</label>
-        <select id="f-dir">
+        <select id="f-dir" onchange="judgeRule()">
           <option>Buy（ロング）</option>
           <option>Sell（ショート）</option>
         </select>
@@ -465,11 +596,11 @@ canvas{width:100%!important;background:transparent;border-radius:var(--r-sm);}
       </div>
       <div class="field">
         <label>Sweep超過幅（ポイント）</label>
-        <input type="number" step="0.25" id="f-sweep-depth" placeholder="例: 2.5" oninput="judgeSweep()">
+        <input type="number" step="0.25" id="f-sweep-depth" placeholder="例: 2.5" oninput="judgeSweep();judgeRule()">
       </div>
       <div class="field">
         <label>Sweep戻り本数（何本で戻ったか）</label>
-        <input type="number" id="f-sweep-return" placeholder="例: 2" oninput="judgeSweep()">
+        <input type="number" id="f-sweep-return" placeholder="例: 2" oninput="judgeSweep();judgeRule()">
       </div>
       <div class="field">
         <label>Sweep自動判定</label>
@@ -554,6 +685,20 @@ canvas{width:100%!important;background:transparent;border-radius:var(--r-sm);}
       <div id="ema-matrix-note" style="margin-top:10px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);line-height:1.6;"></div>
     </div>
 
+
+    <!-- 手法v2 ルール準拠 × 成績 -->
+    <div class="analysis-card" style="margin-bottom:16px;">
+      <div class="ac-title">手法 v2 ルール準拠 × 成績</div>
+      <div id="rule-matrix"></div>
+      <div id="rule-matrix-note" style="margin-top:10px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);line-height:1.6;"></div>
+    </div>
+
+    <!-- 逸脱の内訳 -->
+    <div class="analysis-card" style="margin-bottom:16px;">
+      <div class="ac-title">ルール逸脱の内訳 — どのSTEPを破ると負けるか</div>
+      <div id="violation-bars"></div>
+    </div>
+
     <div class="equity-wrap">
       <div class="equity-title">累積損益カーブ</div>
       <canvas id="equity-chart" height="120"></canvas>
@@ -587,7 +732,13 @@ canvas{width:100%!important;background:transparent;border-radius:var(--r-sm);}
         <div class="field">
           <label>見送り理由</label>
           <select id="nt-reason">
+            <option>4Hと15mが不一致</option>
+            <option>4H/15mがレンジ</option>
+            <option>余地不足（流動性フィルター）</option>
+            <option>Sweep来ず</option>
+            <option>BOS出ず（ボディ基準）</option>
             <option>④実体確定こず</option>
+            <option>逆張りになるため見送り</option>
             <option>バイアス中立</option>
             <option>余地不足</option>
             <option>時間切れ(23:00)</option>
@@ -599,8 +750,9 @@ canvas{width:100%!important;background:transparent;border-radius:var(--r-sm);}
         <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:6px;">
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text);text-transform:none;"><input type="checkbox" id="nt-c1" style="width:15px;height:15px;accent-color:var(--win);">① Sweep（流動性狩り）</label>
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text);text-transform:none;"><input type="checkbox" id="nt-c2" style="width:15px;height:15px;accent-color:var(--win);">② BOS確定</label>
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text);text-transform:none;"><input type="checkbox" id="nt-c3" style="width:15px;height:15px;accent-color:var(--win);">③ バイアス一致</label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text);text-transform:none;"><input type="checkbox" id="nt-c3" style="width:15px;height:15px;accent-color:var(--win);">③ 4H-15m 一致</label>
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text);text-transform:none;"><input type="checkbox" id="nt-c4" style="width:15px;height:15px;accent-color:var(--win);">④ 50EMA実体確定</label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text);text-transform:none;"><input type="checkbox" id="nt-c5" style="width:15px;height:15px;accent-color:var(--win);">⑤ 余地 ≥ SL幅</label>
         </div>
       </div>
       <div class="field form-full" style="margin-top:10px;">
@@ -642,9 +794,24 @@ canvas{width:100%!important;background:transparent;border-radius:var(--r-sm);}
   "sweep_depth": 数値またはnull（Sweepでラインを何ポイント超えたか）,
   "sweep_return_bars": 数値またはnull（超過後何本で実体がライン内側へ戻ったか）,
   "replay_mode": trueまたはfalse（Bar Replayで未来を隠して検証した場合true）,
+  "trend4h": "上昇 / 下降 / レンジ / null（4Hの大局トレンド）",
+  "struct15m": "上昇 / 下降 / レンジ / null（15mの構造方向）",
+  "protectedPrice": 数値またはnull（15mの保護された高値/安値の価格）,
+  "liquidityPrice": 数値またはnull（5mの流動性ポイント＝Sweepターゲットの価格）,
+  "step_sweep": trueまたはfalse（1mでSweepが出たか）,
+  "step_bos": trueまたはfalse（BOS確定・ボディ基準）,
+  "step_ema": trueまたはfalse（50EMAのボディクローズ確認）,
+  "exitReason": "TP到達 / SL到達 / 保護ライン超え（無効化） / 建値・微益撤退 / 時間切れ / 手動（ルール外） / null",
   "conditions": ["該当する条件を配列で"],
   "memo": "気づき・根拠など"
 }
+
+【MNQ スキャルピング手法 v2 の判定基準（アプリ側で自動判定します）】
+・4Hと15mのトレンドが不一致、またはどちらかがレンジ → ノートレード
+・トレンド方向のみエントリー（逆張り禁止）
+・流動性フィルター: |protectedPrice − liquidityPrice| ＜ SL幅 → スキップ
+・執行順序: Sweep → BOS（ボディ基準）→ 50EMAボディクローズ → エントリー
+・15mの保護ラインを超えたら即撤退（exitReason = 保護ライン超え（無効化））
 
 勝ちパターン条件（conditionsに含められるもの）:
 蓄積あり（Sweep前にレンジ）, 前足の質：実体>ヒゲ・長いヒゲなし, Sweep（流動性狩り）あり, 包み足あり（Sweep後）, Sweep直後 × EMAクロスあり, 有利な価格でエントリー（待てた）, BOS確定, EMA実体抜け, 流動性後の反応が強い, バイアス一致, ニュースなし, ボリュームあり, 上下に強いゾーンなし, 20pips以上の余地, リテスト後エントリー
@@ -890,15 +1057,175 @@ function judgeSweep(){
   else { const c=loadSweepCrit(); el.textContent=`✗ 不成立（${c.minDepth}pt以上×${c.maxBars}本以内を満たさず）`; el.style.color='var(--loss)'; el.style.borderColor='rgba(255,61,90,0.4)'; }
 }
 
+// ===== MNQ スキャルピング手法 v2 — ルール準拠エンジン =====
+// STEP1-2: 4Hと15mのトレンド一致 / RULE: 逆張り禁止
+// STEP3   : 流動性フィルター（余地 ≥ SL幅）/ STEP4: Sweep→BOS→50EMAボディクローズ
+const RULE_STEPS=[
+  {key:'align', label:'4H-15m一致'},
+  {key:'dir',   label:'順張り（逆張り禁止）'},
+  {key:'room',  label:'余地≥SL幅'},
+  {key:'seq',   label:'執行順序(Sweep→BOS→EMA)'}
+];
+function ruleLabel(k){ const st=RULE_STEPS.find(s=>s.key===k); return st?st.label:k; }
+function ruleLabels(keys){ return (keys||[]).map(ruleLabel).join(' / '); }
+function ruleNum(v){ const n=parseFloat(v); return isNaN(n)?null:n; }
+function dirTrend(dir){ const d=String(dir||''); return d.indexOf('Buy')===0?'上昇':d.indexOf('Sell')===0?'下降':null; }
+
+// v: {trend4h,struct15m,dir,sl,protectedPrice,liquidityPrice,stepSweep,stepBos,stepEma,sweepValid}
+function evalRuleV2(v){
+  const r={};
+
+  // --- STEP 1-2: 4H と 15m のトレンド一致（不一致・レンジ → ノートレード）---
+  if(!v.trend4h || !v.struct15m) r.align=null;
+  else if(v.trend4h==='レンジ' || v.struct15m==='レンジ') r.align=false;
+  else r.align = (v.trend4h===v.struct15m);
+
+  // --- RULE: トレンド方向のみエントリー（逆張り禁止）---
+  const dt=dirTrend(v.dir);
+  r.dir = (!v.trend4h || v.trend4h==='レンジ' || !dt) ? null : (dt===v.trend4h);
+
+  // --- STEP 3: 流動性フィルター（流動性ポイント〜保護ラインの距離 ≥ SL幅）---
+  const p=ruleNum(v.protectedPrice), l=ruleNum(v.liquidityPrice), sl=ruleNum(v.sl);
+  r.roomPt = (p!=null && l!=null) ? Math.round(Math.abs(p-l)*100)/100 : null;
+  r.room   = (r.roomPt!=null && sl!=null && sl>0) ? (r.roomPt>=sl) : null;
+
+  // --- STEP 4: 執行順序（Sweep → BOS → 50EMAボディクローズ）---
+  // Sweep は数値が入っていれば自動判定を優先する
+  let sweepOk;
+  if(v.sweepValid===true) sweepOk=true;
+  else if(v.sweepValid===false) sweepOk=false;
+  else sweepOk=!!v.stepSweep;
+  r.sweepOk=sweepOk;
+  const anySeq = v.stepSweep||v.stepBos||v.stepEma||v.sweepValid!=null;
+  r.seq = anySeq ? (sweepOk && !!v.stepBos && !!v.stepEma) : null;
+
+  r.violations = RULE_STEPS.filter(st=>r[st.key]===false).map(st=>st.key);
+  r.pending    = RULE_STEPS.filter(st=>r[st.key]===null ).map(st=>st.key);
+  r.compliant  = r.pending.length ? null : (r.violations.length===0);
+  return r;
+}
+
+// 保存済みレコードから判定を取り出す（旧データは null = 未記録）
+function recordRule(rec){
+  if(rec && rec.rule_compliant!==undefined) return rec.rule_compliant;
+  return null;
+}
+
+const RULE_IDS={
+  form:{trend4h:'f-trend4h',struct15m:'f-struct15m',dir:'f-dir',sl:'f-sl',prot:'f-protected',liq:'f-liquidity',
+        swD:'f-sweep-depth',swB:'f-sweep-return',sSweep:'f-step-sweep',sBos:'f-step-bos',sEma:'f-step-ema',exit:'f-exit'},
+  edit:{trend4h:'be-trend4h',struct15m:'be-struct15m',dir:'be-dir',sl:'be-sl',prot:'be-protected',liq:'be-liquidity',
+        swD:'be-sweep-depth',swB:'be-sweep-return',sSweep:'be-step-sweep',sBos:'be-step-bos',sEma:'be-step-ema',exit:'be-exit'}
+};
+function readRuleForm(which){
+  const m=RULE_IDS[which], g=id=>document.getElementById(id);
+  if(!g(m.trend4h)) return null;
+  const d=parseFloat(g(m.swD).value), b=parseInt(g(m.swB).value);
+  return {
+    trend4h:g(m.trend4h).value, struct15m:g(m.struct15m).value,
+    dir:g(m.dir).value, sl:g(m.sl).value,
+    protectedPrice:g(m.prot).value, liquidityPrice:g(m.liq).value,
+    stepSweep:g(m.sSweep).checked, stepBos:g(m.sBos).checked, stepEma:g(m.sEma).checked,
+    sweepValid:judgeSweepVal(isNaN(d)?null:d, isNaN(b)?null:b),
+    exit:g(m.exit).value
+  };
+}
+// レコードに保存する形へ
+function ruleRecordFields(which){
+  const v=readRuleForm(which);
+  if(!v) return {};
+  const r=evalRuleV2(v);
+  return {
+    trend4h:v.trend4h||null, struct15m:v.struct15m||null,
+    protectedPrice:ruleNum(v.protectedPrice), liquidityPrice:ruleNum(v.liquidityPrice), roomPt:r.roomPt,
+    step_sweep:!!v.stepSweep, step_bos:!!v.stepBos, step_ema:!!v.stepEma,
+    exitReason:v.exit||null,
+    rule_align:r.align, rule_dir:r.dir, rule_room:r.room, rule_seq:r.seq,
+    rule_compliant:r.compliant, rule_violations:r.violations
+  };
+}
+
+function ruleVerdictHTML(r){
+  if(r.compliant===true)  return '✓ ルール準拠 — STEP 1〜4 をすべて満たしています';
+  if(r.compliant===false) return '⚠ ルール逸脱 — '+ruleLabels(r.violations)
+    +'<br><span style="font-size:10px;opacity:0.8;">逸脱として記録できます（分析タブで準拠との勝率を比較します）</span>';
+  let t='— 判定不能（未入力: '+ruleLabels(r.pending)+'）';
+  if(r.violations.length) t+='<br><span style="font-size:10px;opacity:0.8;">既に逸脱: '+ruleLabels(r.violations)+'</span>';
+  return t;
+}
+
+function paintVerdict(el, val, okText, ngText){
+  if(!el) return;
+  el.className='rs-verdict'+(val===true?' ok':val===false?' ng':'');
+  el.textContent = val===true?okText : val===false?ngText : '— 未入力';
+}
+
+// ---- 記録タブの判定 ----
+function judgeRule(){
+  const v=readRuleForm('form');
+  if(!v) return;
+  const r=evalRuleV2(v);
+  const isRange = v.trend4h==='レンジ'||v.struct15m==='レンジ';
+  paintVerdict(document.getElementById('rv-align'), r.align, '✓ 一致', isRange?'✗ レンジ → ノートレード':'✗ 不一致 → ノートレード');
+  paintVerdict(document.getElementById('rv-dir'),   r.dir,   '✓ 順張り', '✗ 逆張り');
+  paintVerdict(document.getElementById('rv-room'),  r.room,  '✓ 余地あり', '✗ 余地不足 → スキップ');
+  paintVerdict(document.getElementById('rv-seq'),   r.seq,   '✓ 順序OK', '✗ 順序未達');
+
+  const sl=ruleNum(v.sl);
+  const calc=document.getElementById('rs-room-calc');
+  if(r.roomPt!=null){
+    calc.textContent = sl!=null&&sl>0
+      ? `余地 ${r.roomPt} pt ${r.roomPt>=sl?'≥':'＜'} SL幅 ${sl}`
+      : `余地 ${r.roomPt} pt（SL幅 未入力）`;
+    calc.style.color = (sl!=null&&sl>0) ? (r.roomPt>=sl?'var(--win)':'var(--loss)') : 'var(--dim)';
+  } else {
+    calc.textContent='余地 = |保護ライン − 流動性ポイント| — 下の「リスク pips (SL幅)」と比較します';
+    calc.style.color='var(--dim)';
+  }
+
+  const hint=document.getElementById('rs-seq-hint');
+  if(v.sweepValid===true)       { hint.textContent='Sweep: 自動判定 ✓ 成立（チェックの有無に関わらず成立扱い）'; hint.style.color='var(--win)'; }
+  else if(v.sweepValid===false) { hint.textContent='Sweep: 自動判定 ✗ 不成立（基準を満たさないため①は不成立）'; hint.style.color='var(--loss)'; }
+  else { hint.textContent='下の Sweep 超過幅・戻り本数を入力すると、Sweep の成否は自動判定を優先します'; hint.style.color='var(--dim)'; }
+
+  document.getElementById('rsc-sweep').classList.toggle('on', r.sweepOk);
+  document.getElementById('rsc-bos').classList.toggle('on', v.stepBos);
+  document.getElementById('rsc-ema').classList.toggle('on', v.stepEma);
+
+  const badge=document.getElementById('rule-final-badge');
+  badge.className='rule-final-badge'+(r.compliant===true?' ok':r.compliant===false?' ng':' na');
+  badge.innerHTML=ruleVerdictHTML(r);
+}
+
+// ---- 編集モーダルの判定 ----
+function judgeBRule(){
+  const v=readRuleForm('edit');
+  if(!v) return;
+  const r=evalRuleV2(v);
+  const el=document.getElementById('be-rule-verdict');
+  if(!el) return;
+  el.innerHTML=ruleVerdictHTML(r)
+    + (r.roomPt!=null?`<br><span style="font-size:10px;">余地 ${r.roomPt} pt / SL幅 ${ruleNum(v.sl)!=null?ruleNum(v.sl):'—'}</span>`:'');
+  el.style.color = r.compliant===true?'var(--win-card)' : r.compliant===false?'var(--loss-card)' : 'var(--gold-card)';
+}
+
+function toggleRuleRef(){
+  const b=document.getElementById('rule-ref-body');
+  const c=document.getElementById('rule-ref-caret');
+  const open=b.style.display==='none';
+  b.style.display=open?'block':'none';
+  c.textContent=open?'▲ 閉じる':'▼ 開く';
+}
+
 // ---- No-Trade Log（見送り記録） ----
 const NT_KEY='backtest_notrade_v1';
 function loadNT(){ try{return JSON.parse(localStorage.getItem(NT_KEY))||[];}catch{return[];} }
 function saveNT(d){ localStorage.setItem(NT_KEY, JSON.stringify(d)); }
-const NT_CONDS=['① Sweep','② BOS確定','③ バイアス一致','④ 50EMA実体確定'];
+const NT_CONDS=['① Sweep','② BOS確定(ボディ)','③ 4H-15m一致','④ 50EMA実体確定','⑤ 余地≥SL幅'];
 function saveNoTrade(){
   const date=document.getElementById('nt-date').value;
   if(!date){ alert('日時を入力してください'); return; }
-  const conds=[1,2,3,4].filter(i=>document.getElementById('nt-c'+i).checked);
+  const conds=[1,2,3,4,5].filter(i=>document.getElementById('nt-c'+i).checked);
   const rec={
     id:Date.now(),
     date,
@@ -907,7 +1234,7 @@ function saveNoTrade(){
     memo:document.getElementById('nt-memo').value.trim()
   };
   const d=loadNT(); d.unshift(rec); saveNT(d);
-  [1,2,3,4].forEach(i=>document.getElementById('nt-c'+i).checked=false);
+  [1,2,3,4,5].forEach(i=>document.getElementById('nt-c'+i).checked=false);
   document.getElementById('nt-memo').value='';
   renderNTList();
 }
@@ -1036,11 +1363,33 @@ function renderAutoBackupPanel(){
   const el=document.getElementById('auto-backup-list');
   if(!el) return;
   const list=loadAutoBackups();
-  el.innerHTML=list.length?list.map((s,i)=>`
-    <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--s1);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:4px;">
-      <span style="flex:1;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text);">${esc(new Date(s.ts).toLocaleString('ja-JP'))} — ${s.records.length}件</span>
-      <button onclick="restoreAutoBackupEntry(${i})" style="background:none;border:1px solid var(--gold);border-radius:var(--r-pill);color:var(--gold);font-family:'Share Tech Mono',monospace;font-size:10px;padding:5px 12px;cursor:pointer;">復元</button>
-    </div>`).join(''):'<div style="font-size:11px;color:var(--dim);">まだ自動バックアップがありません</div>';
+  if(!list.length){
+    el.innerHTML='<div style="font-size:11px;color:var(--dim);">まだ自動バックアップがありません</div>';
+    return;
+  }
+  // 自分で古い履歴を選んでいた場合だけ再描画をまたいで保つ（index はズレるので ts で照合）。
+  // 既定（最新）のままなら、新しい履歴が増えたときに最新へ追従させる。
+  const prevSel=el.querySelector('#auto-backup-select');
+  const keepTs=(prevSel && prevSel.selectedIndex>0 && prevSel.selectedOptions[0])
+    ? prevSel.selectedOptions[0].dataset.ts : null;
+
+  el.innerHTML=`<div style="display:flex;gap:8px;align-items:center;">
+    <select id="auto-backup-select" style="flex:1;min-width:0;background:var(--s1);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:11px;padding:9px 10px;outline:none;appearance:none;cursor:pointer;">
+      ${list.map((s,i)=>`<option value="${i}" data-ts="${esc(s.ts)}" style="background:#0d1117;">${esc(new Date(s.ts).toLocaleString('ja-JP'))} — ${s.records.length}件${i===0?'（最新）':''}</option>`).join('')}
+    </select>
+    <button onclick="restoreSelectedAutoBackup()" style="flex-shrink:0;background:none;border:1px solid var(--gold);border-radius:var(--r-pill);color:var(--gold);font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;padding:9px 16px;cursor:pointer;">復元</button>
+  </div>
+  <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);margin-top:6px;">${list.length}件保存中（古いものから自動で消えます）</div>`;
+
+  if(keepTs){
+    const opt=el.querySelector(`#auto-backup-select option[data-ts="${CSS.escape(keepTs)}"]`);
+    if(opt) el.querySelector('#auto-backup-select').value=opt.value;
+  }
+}
+function restoreSelectedAutoBackup(){
+  const sel=document.getElementById('auto-backup-select');
+  if(!sel) return;
+  restoreAutoBackupEntry(parseInt(sel.value,10));
 }
 function restoreAutoBackupEntry(i){
   const snap=loadAutoBackups()[i];
@@ -1255,6 +1604,7 @@ function delBSym(i){
   renderBSymSelect();
   buildCondGrid('win-cond-grid', WIN_CONDITIONS, 'win-cond');
   buildCondGrid('loss-cond-grid', LOSS_CONDITIONS, 'loss-cond');
+  judgeRule();
   // ページ読込時に現在の状態を基準スナップショットとして保存（初回の削除操作からも復元できるように）
   scheduleAutoBackup();
   renderAutoBackupPanel();
@@ -1365,7 +1715,8 @@ function saveRecord(){
     replay_mode: document.getElementById('f-replay').checked,
     conditions: conds,
     memo: document.getElementById('f-memo').value.trim(),
-    imgCount: pendingImgs.length
+    imgCount: pendingImgs.length,
+    ...ruleRecordFields('form')
   };
 
   const imgsToSave = [...pendingImgs];
@@ -1385,6 +1736,12 @@ function saveRecord(){
   document.getElementById('f-sweep-depth').value='';
   document.getElementById('f-sweep-return').value='';
   judgeSweep();
+  document.getElementById('f-protected').value='';
+  document.getElementById('f-liquidity').value='';
+  document.getElementById('f-step-sweep').checked=false;
+  document.getElementById('f-step-bos').checked=false;
+  document.getElementById('f-step-ema').checked=false;
+  judgeRule();
   document.getElementById('f-replay').checked=false;
   document.getElementById('f-memo').value='';
   document.getElementById('rr-display').textContent='—';
@@ -1445,6 +1802,9 @@ function renderAnalysis(){
     document.getElementById('loss-cond-bars').innerHTML='';
     document.getElementById('ema-matrix').innerHTML='';
     document.getElementById('ema-matrix-note').textContent='';
+    document.getElementById('rule-matrix').innerHTML='';
+    document.getElementById('rule-matrix-note').textContent='';
+    document.getElementById('violation-bars').innerHTML='';
     drawEquity([]);
     return;
   }
@@ -1507,6 +1867,9 @@ function renderAnalysis(){
   if(confRecs.length<10||midRecs.length<10) notes.push('n < 10 のセルは統計的な結論に使えません。傾向の参考のみ。');
   noteEl.innerHTML=notes.join('<br>');
 
+  // ---- 手法v2 ルール準拠分析 ----
+  renderRuleAnalysis(data);
+
   // Condition bars
   const wcBars = document.getElementById('win-cond-bars');
   const lcBars = document.getElementById('loss-cond-bars');
@@ -1531,6 +1894,89 @@ function renderAnalysis(){
     return eq;
   });
   drawEquity(points);
+}
+
+// ===== 手法v2 ルール準拠分析 =====
+function ruleBucket(r){
+  if(r.rule_compliant===true) return 'ok';
+  if(r.rule_compliant===false) return 'ng';
+  if(Array.isArray(r.rule_violations) && r.rule_violations.length) return 'ng';
+  return 'na';
+}
+function ruleStats(recs){
+  const n=recs.length;
+  const w=recs.filter(r=>r.result==='win').length;
+  const l=recs.filter(r=>r.result==='loss').length;
+  const rrs=recs.filter(r=>r.result==='win'&&r.rr);
+  return {
+    n, w, l,
+    wr: n?Math.round(w/n*100):null,
+    avgRR: rrs.length?(rrs.reduce((s,r)=>s+r.rr,0)/rrs.length).toFixed(2):null,
+    net: recs.reduce((s,r)=>s+(r.result==='win'?r.usd:-r.usd),0)
+  };
+}
+function renderRuleAnalysis(data){
+  const buckets=[
+    {label:'✓ ルール準拠',  recs:data.filter(r=>ruleBucket(r)==='ok'), color:'var(--win)'},
+    {label:'⚠ ルール逸脱',  recs:data.filter(r=>ruleBucket(r)==='ng'), color:'var(--loss)'},
+    {label:'— 未記録（旧データ）', recs:data.filter(r=>ruleBucket(r)==='na'), color:'var(--dim)'}
+  ];
+  const head=['区分','勝ち','負け','勝率','平均RR','純損益 $'];
+  const mx=document.getElementById('rule-matrix');
+  mx.innerHTML=`<div style="display:grid;grid-template-columns:1.6fr 0.7fr 0.7fr 0.8fr 0.8fr 1fr;gap:1px;background:var(--border);font-family:'Share Tech Mono',monospace;font-size:11px;">
+    ${head.map(h=>`<div style="background:var(--s1);padding:8px 10px;color:var(--dim);font-size:9px;letter-spacing:1px;">${h}</div>`).join('')}
+    ${buckets.map(b=>{
+      const st=ruleStats(b.recs);
+      const warn = st.n>0 && st.n<10
+        ? `<span style="display:inline-block;margin-left:6px;font-size:8px;padding:1px 6px;border:1px solid var(--gold);color:var(--gold);">⚠ n=${st.n}</span>`
+        : `<span style="color:var(--dim);font-size:9px;margin-left:6px;">n=${st.n}</span>`;
+      return `<div style="background:var(--bg);padding:10px;color:${b.color};">${b.label}${warn}</div>
+        <div style="background:var(--bg);padding:10px;color:var(--win);">${st.w}</div>
+        <div style="background:var(--bg);padding:10px;color:var(--loss);">${st.l}</div>
+        <div style="background:var(--bg);padding:10px;font-weight:700;color:${st.wr===null?'var(--dim)':st.wr>=50?'var(--win)':'var(--loss)'};">${st.wr===null?'—':st.wr+'%'}</div>
+        <div style="background:var(--bg);padding:10px;color:var(--neutral);">${st.avgRR===null?'—':st.avgRR+'R'}</div>
+        <div style="background:var(--bg);padding:10px;color:${st.net>=0?'var(--win)':'var(--loss)'};">${st.net>=0?'+':'-'}$${Math.abs(st.net).toLocaleString()}</div>`;
+    }).join('')}
+  </div>`;
+
+  const note=document.getElementById('rule-matrix-note');
+  const okSt=ruleStats(buckets[0].recs), ngSt=ruleStats(buckets[1].recs);
+  const notes=[];
+  if(okSt.wr!==null&&ngSt.wr!==null){
+    const diff=okSt.wr-ngSt.wr;
+    notes.push(`準拠 ${okSt.wr}% − 逸脱 ${ngSt.wr}% = ${diff>=0?'+':''}${diff}pt`);
+    if(Math.abs(diff)<10) notes.push('⚠ 勝率差が10pt未満 — 誤差範囲の可能性あり。サンプルを増やしてください。');
+    else if(diff>0) notes.push('→ ルール通りに執行したほうが成績が良い（ルールが機能している）。');
+    else notes.push('→ 逸脱のほうが成績が良い。サンプル数とバイアス（後知恵・母数の偏り）を確認してください。');
+  }
+  if(okSt.n<10||ngSt.n<10) notes.push('n < 10 の区分は統計的な結論に使えません。傾向の参考のみ。');
+  if(buckets[2].recs.length) notes.push(`未記録 ${buckets[2].recs.length}件 — 編集画面で 4H/15m・保護ライン・流動性ポイント・執行チェックを入れると判定されます。`);
+  note.innerHTML=notes.join('<br>');
+
+  renderViolationBars(data);
+}
+function renderViolationBars(data){
+  const el=document.getElementById('violation-bars');
+  const viol=data.filter(r=>Array.isArray(r.rule_violations)&&r.rule_violations.length);
+  if(!viol.length){
+    el.innerHTML='<div style="font-family:\'Share Tech Mono\',monospace;font-size:11px;color:var(--dim);line-height:1.8;">逸脱の記録がありません。</div>';
+    return;
+  }
+  el.innerHTML=RULE_STEPS.map(st=>{
+    const recs=viol.filter(r=>r.rule_violations.includes(st.key));
+    const n=recs.length;
+    if(!n) return `<div class="cond-bar-row"><div class="cbr-top"><span class="cbr-label">${esc(st.label)}</span><span class="cbr-stat">0件</span></div><div class="cbr-track"><div class="cbr-fill loss-fill" style="width:0%"></div></div></div>`;
+    const w=recs.filter(r=>r.result==='win').length;
+    const wr=Math.round(w/n*100);
+    const pct=Math.round(n/viol.length*100);
+    return `<div class="cond-bar-row">
+      <div class="cbr-top">
+        <span class="cbr-label">${esc(st.label)} を破った</span>
+        <span class="cbr-stat">${n}件 / 勝率 <span style="color:${wr>=50?'var(--win)':'var(--loss)'}">${wr}%</span></span>
+      </div>
+      <div class="cbr-track"><div class="cbr-fill loss-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('') + `<div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);margin-top:8px;line-height:1.6;">バーの長さ＝逸脱${viol.length}件に占める割合（1件が複数の逸脱を含むことがあります）</div>`;
 }
 
 function barRow(label, cnt, pct, cls, total){
@@ -1644,6 +2090,9 @@ function renderList(){
       return `<span class="td-tag ${cls}">${label}: ${v||'—'}</span>`;
     };
     const flags=[];
+    const rb=ruleBucket(r);
+    if(rb==='ok') flags.push('<span class="td-tag win-tag">✓ ルール準拠</span>');
+    else if(rb==='ng') flags.push(`<span class="td-tag loss-tag">⚠ 逸脱: ${esc(ruleLabels(r.rule_violations||[]))||'—'}</span>`);
     if(r.sweep_depth!=null||r.sweep_return_bars!=null){
       const cls=r.sweep_valid?'win-tag':r.sweep_valid===false?'loss-tag':'neu-tag';
       flags.push(`<span class="td-tag ${cls}">Sweep: ${r.sweep_depth!=null?'+'+r.sweep_depth+'pt':'—'} / ${r.sweep_return_bars!=null?r.sweep_return_bars+'本':'—'} ${r.sweep_valid?'✓':r.sweep_valid===false?'✗':''}</span>`);
@@ -1677,6 +2126,7 @@ function renderList(){
                 ${biasPill('5分',r.bias5)}
                 ${biasPill('15分',r.bias15)}
               </div>
+              ${ruleDetailHTML(r)}
               <div class="td-section-title">${r.result==='win'?'達成条件':'負け原因'}</div>
               <div class="td-tags">${condTags||'<span style="font-size:11px;color:var(--card-dim)">記録なし</span>'}</div>
               ${r.memo?`<div style="margin-top:10px"><div class="td-section-title">メモ</div><div class="td-memo">${esc(r.memo)}</div></div>`:''}
@@ -1689,6 +2139,22 @@ function renderList(){
         </div>
       </div>`;
   }).join('');
+}
+
+// 一覧の詳細に出す 手法v2 の内訳
+function ruleDetailHTML(r){
+  if(ruleBucket(r)==='na' && r.trend4h==null && r.protectedPrice==null && !r.step_sweep && !r.step_bos && !r.step_ema && !r.exitReason) return '';
+  const tag=(txt,ok)=>`<span class="td-tag ${ok===true?'win-tag':ok===false?'loss-tag':'neu-tag'}">${esc(txt)}</span>`;
+  const t=[];
+  if(r.trend4h||r.struct15m) t.push(tag(`4H:${r.trend4h||'—'} / 15m:${r.struct15m||'—'}`, r.rule_align));
+  if(r.rule_dir!=null) t.push(tag(r.rule_dir?'順張り':'逆張り', r.rule_dir));
+  if(r.roomPt!=null) t.push(tag(`余地 ${r.roomPt}pt / SL ${r.sl!=null?r.sl:'—'}`, r.rule_room));
+  if(r.step_sweep!=null||r.step_bos!=null||r.step_ema!=null)
+    t.push(tag(`①${r.step_sweep?'✓':'✗'} ②${r.step_bos?'✓':'✗'} ③${r.step_ema?'✓':'✗'}`, r.rule_seq));
+  if(r.exitReason) t.push(tag(`決済: ${r.exitReason}`, null));
+  if(!t.length) return '';
+  return `<div class="td-section-title">手法v2 ルール判定</div>
+    <div class="td-tags" style="margin-bottom:10px;">${t.join('')}</div>`;
 }
 
 async function toggleDetail(id){
@@ -1817,6 +2283,15 @@ function openBEdit(id){
   document.getElementById('be-sweep-depth').value = r.sweep_depth!=null?r.sweep_depth:'';
   document.getElementById('be-sweep-return').value = r.sweep_return_bars!=null?r.sweep_return_bars:'';
   judgeBSweep();
+  document.getElementById('be-trend4h').value = r.trend4h||'';
+  document.getElementById('be-struct15m').value = r.struct15m||'';
+  document.getElementById('be-protected').value = r.protectedPrice!=null?r.protectedPrice:'';
+  document.getElementById('be-liquidity').value = r.liquidityPrice!=null?r.liquidityPrice:'';
+  document.getElementById('be-step-sweep').checked = !!r.step_sweep;
+  document.getElementById('be-step-bos').checked = !!r.step_bos;
+  document.getElementById('be-step-ema').checked = !!r.step_ema;
+  document.getElementById('be-exit').value = r.exitReason||'';
+  judgeBRule();
   document.getElementById('be-replay').checked = !!r.replay_mode;
   document.getElementById('be-memo').value = r.memo||'';
   bEditExistingImgs=[];
@@ -1918,7 +2393,8 @@ function saveBEdit(){
     replay_mode:document.getElementById('be-replay').checked,
     conditions:conds,
     memo:document.getElementById('be-memo').value.trim(),
-    imgCount:bFinalImgs.length
+    imgCount:bFinalImgs.length,
+    ...ruleRecordFields('edit')
   };
   saveData(data);
   scheduleAutoBackup();
@@ -2162,6 +2638,21 @@ async function exportAllData(){
         bias5: r.bias5,
         bias15: r.bias15,
         ema50: r.ema50,
+        sweep_depth: r.sweep_depth,
+        sweep_return_bars: r.sweep_return_bars,
+        sweep_valid: r.sweep_valid,
+        replay_mode: r.replay_mode,
+        trend4h: r.trend4h,
+        struct15m: r.struct15m,
+        protectedPrice: r.protectedPrice,
+        liquidityPrice: r.liquidityPrice,
+        roomPt: r.roomPt,
+        step_sweep: r.step_sweep,
+        step_bos: r.step_bos,
+        step_ema: r.step_ema,
+        exitReason: r.exitReason,
+        rule_compliant: r.rule_compliant,
+        rule_violations: r.rule_violations,
         conditions: r.conditions,
         memo: r.memo,
         chart_images: []
@@ -2187,6 +2678,11 @@ async function exportAllData(){
       win_rate: data.length ? Math.round(wins.length/data.length*100) : 0,
       total_profit_usd: wins.reduce((s,r)=>s+r.usd,0),
       total_loss_usd: losses.reduce((s,r)=>s+r.usd,0),
+      rule_v2: {
+        compliant: ruleStats(data.filter(r=>ruleBucket(r)==='ok')),
+        violated:  ruleStats(data.filter(r=>ruleBucket(r)==='ng')),
+        unrecorded: data.filter(r=>ruleBucket(r)==='na').length
+      },
       exported_at: new Date().toISOString()
     };
 
@@ -2198,6 +2694,14 @@ async function exportAllData(){
 このZIPには以下が含まれています：
 - backtest_data.json : 全検証記録のデータ
 - charts/ : 各記録のチャート画像
+
+検証対象ルール: MNQ スキャルピング手法 v2（流動性フィルター追加版）
+  STEP1-2 4Hと15mのトレンド一致（不一致/レンジ → ノートレード）
+  RULE    トレンド方向のみエントリー（逆張り禁止）
+  STEP3   流動性フィルター: |保護ライン − 流動性ポイント| ≥ SL幅
+  STEP4   Sweep → BOS（ボディ基準）→ 50EMAボディクローズ → エントリー
+  STEP5   15mの保護ラインを超えたら即撤退
+各記録の rule_compliant / rule_violations がこのルールへの準拠判定です。
 
 Claudeに分析してもらう場合：
 1. このZIPを解凍
@@ -2252,9 +2756,24 @@ function renderBPrompt(){
   "sweep_depth": 数値またはnull（Sweepでラインを何ポイント超えたか）,
   "sweep_return_bars": 数値またはnull（超過後何本で実体がライン内側へ戻ったか）,
   "replay_mode": trueまたはfalse（Bar Replayで未来を隠して検証した場合true）,
+  "trend4h": "上昇 / 下降 / レンジ / null（4Hの大局トレンド）",
+  "struct15m": "上昇 / 下降 / レンジ / null（15mの構造方向）",
+  "protectedPrice": 数値またはnull（15mの保護された高値/安値の価格）,
+  "liquidityPrice": 数値またはnull（5mの流動性ポイント＝Sweepターゲットの価格）,
+  "step_sweep": trueまたはfalse（1mでSweepが出たか）,
+  "step_bos": trueまたはfalse（BOS確定・ボディ基準）,
+  "step_ema": trueまたはfalse（50EMAのボディクローズ確認）,
+  "exitReason": "TP到達 / SL到達 / 保護ライン超え（無効化） / 建値・微益撤退 / 時間切れ / 手動（ルール外） / null",
   "conditions": ["該当する条件を配列で"],
   "memo": "気づき・根拠など"
 }
+
+【MNQ スキャルピング手法 v2 の判定基準（アプリ側で自動判定します）】
+・4Hと15mのトレンドが不一致、またはどちらかがレンジ → ノートレード
+・トレンド方向のみエントリー（逆張り禁止）
+・流動性フィルター: |protectedPrice − liquidityPrice| ＜ SL幅 → スキップ
+・執行順序: Sweep → BOS（ボディ基準）→ 50EMAボディクローズ → エントリー
+・15mの保護ラインを超えたら即撤退（exitReason = 保護ライン超え（無効化））
 
 勝ちパターン条件（conditionsに含められるもの）:
 ${WIN_CONDITIONS.join(', ')}
@@ -2351,6 +2870,26 @@ function parseBAIJson(){
     if(data.sweep_return_bars!=null) document.getElementById('f-sweep-return').value = data.sweep_return_bars;
     judgeSweep();
     if(typeof data.replay_mode==='boolean') document.getElementById('f-replay').checked = data.replay_mode;
+
+    const trendVal=v=>{
+      const t=String(v||'').trim();
+      if(t.indexOf('上昇')>=0) return '上昇';
+      if(t.indexOf('下降')>=0||t.indexOf('下落')>=0) return '下降';
+      if(t.indexOf('レンジ')>=0) return 'レンジ';
+      return '';
+    };
+    document.getElementById('f-trend4h').value  = trendVal(data.trend4h);
+    document.getElementById('f-struct15m').value= trendVal(data.struct15m);
+    if(data.protectedPrice!=null) document.getElementById('f-protected').value = data.protectedPrice;
+    if(data.liquidityPrice!=null) document.getElementById('f-liquidity').value = data.liquidityPrice;
+    if(typeof data.step_sweep==='boolean') document.getElementById('f-step-sweep').checked = data.step_sweep;
+    if(typeof data.step_bos==='boolean')   document.getElementById('f-step-bos').checked   = data.step_bos;
+    if(typeof data.step_ema==='boolean')   document.getElementById('f-step-ema').checked   = data.step_ema;
+    if(data.exitReason){
+      const ex=document.getElementById('f-exit');
+      for(let o of ex.options){ if(o.value===data.exitReason){ ex.value=o.value; break; } }
+    }
+    judgeRule();
 
     document.getElementById('b-ai-json-input').value = '';
 
@@ -2627,7 +3166,7 @@ document.addEventListener('keydown', e=>{
         <label class="stepper-label">リスク pips (SL幅)</label>
         <div class="stepper-row">
           <button type="button" class="stepper-btn" onclick="stepVal('be-sl',-1)">−</button>
-          <input type="number" id="be-sl" class="stepper-val" placeholder="0" oninput="calcBEditRR()">
+          <input type="number" id="be-sl" class="stepper-val" placeholder="0" oninput="calcBEditRR();judgeBRule()">
           <button type="button" class="stepper-btn" onclick="stepVal('be-sl',1)">＋</button>
         </div>
       </div>
@@ -2635,13 +3174,34 @@ document.addEventListener('keydown', e=>{
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
         <div class="field"><label>日時</label><input type="datetime-local" id="be-date"></div>
         <div class="field"><label>銘柄</label><select id="be-symbol"></select></div>
-        <div class="field"><label>方向</label><select id="be-dir"><option>Buy（ロング）</option><option>Sell（ショート）</option></select></div>
+        <div class="field"><label>方向</label><select id="be-dir" onchange="judgeBRule()"><option>Buy（ロング）</option><option>Sell（ショート）</option></select></div>
         <div class="field"><label>50EMA実体確定</label><select id="be-ema50"><option value="Yes">✅ 確定後エントリー</option><option value="No">⚡ 途中でエントリー</option></select></div>
         <div class="field"><label>5分足バイアス</label><select id="be-bias5"><option value="一致">一致</option><option value="不一致">不一致</option><option value="中立">中立</option></select></div>
         <div class="field"><label>15分足バイアス</label><select id="be-bias15"><option value="一致">一致</option><option value="不一致">不一致</option><option value="中立">中立</option></select></div>
-        <div class="field"><label>Sweep超過幅 (pt)</label><input type="number" step="0.25" id="be-sweep-depth" oninput="judgeBSweep()"></div>
-        <div class="field"><label>Sweep戻り本数</label><input type="number" id="be-sweep-return" oninput="judgeBSweep()"></div>
+        <div class="field"><label>Sweep超過幅 (pt)</label><input type="number" step="0.25" id="be-sweep-depth" oninput="judgeBSweep();judgeBRule()"></div>
+        <div class="field"><label>Sweep戻り本数</label><input type="number" id="be-sweep-return" oninput="judgeBSweep();judgeBRule()"></div>
         <div class="field"><label>Sweep自動判定</label><div id="be-sweep-valid" style="font-family:'Share Tech Mono',monospace;font-size:12px;padding:9px 12px;background:var(--card2);border:1px solid var(--card-border);border-radius:var(--r-sm);color:var(--card-dim);">— 未入力</div></div>
+        <div class="field"><label>4H トレンド</label><select id="be-trend4h" onchange="judgeBRule()"><option value="">— 未選択</option><option value="上昇">上昇</option><option value="下降">下降</option><option value="レンジ">レンジ/不明</option></select></div>
+        <div class="field"><label>15m 構造</label><select id="be-struct15m" onchange="judgeBRule()"><option value="">— 未選択</option><option value="上昇">上昇</option><option value="下降">下降</option><option value="レンジ">レンジ/不明</option></select></div>
+        <div class="field"><label>保護ライン価格</label><input type="number" step="0.25" id="be-protected" oninput="judgeBRule()"></div>
+        <div class="field"><label>流動性ポイント価格</label><input type="number" step="0.25" id="be-liquidity" oninput="judgeBRule()"></div>
+        <div class="field form-full"><label>決済理由</label><select id="be-exit">
+          <option value="">— 未選択</option>
+          <option value="TP到達">TP到達</option>
+          <option value="SL到達">SL到達</option>
+          <option value="保護ライン超え（無効化）">保護ライン超え（無効化・即撤退）</option>
+          <option value="建値・微益撤退">建値・微益撤退</option>
+          <option value="時間切れ">時間切れ</option>
+          <option value="手動（ルール外）">手動（ルール外の裁量決済）</option>
+        </select></div>
+        <div class="field form-full"><label>執行順序（1m）</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:2px;">
+            <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:11px;color:var(--card-text);text-transform:none;letter-spacing:0;"><input type="checkbox" id="be-step-sweep" onchange="judgeBRule()" style="width:15px;height:15px;accent-color:var(--win-card);">① Sweep</label>
+            <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:11px;color:var(--card-text);text-transform:none;letter-spacing:0;"><input type="checkbox" id="be-step-bos" onchange="judgeBRule()" style="width:15px;height:15px;accent-color:var(--win-card);">② BOS（ボディ）</label>
+            <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:11px;color:var(--card-text);text-transform:none;letter-spacing:0;"><input type="checkbox" id="be-step-ema" onchange="judgeBRule()" style="width:15px;height:15px;accent-color:var(--win-card);">③ 50EMAボディ</label>
+          </div>
+        </div>
+        <div class="field form-full"><label>手法v2 ルール判定</label><div id="be-rule-verdict" style="font-family:'Share Tech Mono',monospace;font-size:12px;padding:10px 12px;background:var(--card2);border:1px solid var(--card-border);border-radius:var(--r-sm);color:var(--card-dim);line-height:1.6;">— 未入力</div></div>
         <div class="field form-full"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;color:var(--card-dim);"><input type="checkbox" id="be-replay" style="width:15px;height:15px;accent-color:var(--neutral);cursor:pointer;">🎬 Bar Replayで未来を隠して検証した</label></div>
       </div>
       <div id="be-wcs"><div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--card-dim);text-transform:uppercase;margin-bottom:8px;">勝ちパターン条件</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;" id="be-wcg"></div></div>
